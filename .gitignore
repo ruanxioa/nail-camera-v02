@@ -1,0 +1,11 @@
+node_modules/
+.local/
+*.log
+*.pem
+*.crt
+*.jpg
+*.jpeg
+*.png
+*.heic
+*.webp
+*.zip

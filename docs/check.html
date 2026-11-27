@@ -1,0 +1,40 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#152119"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
+<title>手机测试与验收 · 甲面拍摄 V0.2</title><style>
+*{box-sizing:border-box}body{font:16px/1.65 system-ui,"Roboto",sans-serif;background:#111914;color:#eef4ee;margin:0}
+main{max-width:880px;margin:auto;padding:20px 16px 50px}a{color:#9ce7b4}h1{font-size:25px}h2{font-size:20px;margin:24px 0 6px}p{margin:7px 0}
+ol{padding-left:1.55rem}li{margin-bottom:7px}table{border-collapse:collapse;width:100%;font-size:14px}td,th{vertical-align:top;text-align:left;padding:8px 6px;border-bottom:1px solid #405547}
+summary{padding:12px 0;color:#a9ebbf;cursor:pointer}details{border-top:1px solid #405547}small{color:#c4d2c7}</style></head>
+<body><main><a href="./">‹ 打开相机</a><h1>在手机上试一遍</h1>
+<ol><li>用小米13的 Chrome 打开拍摄页。点「开启相机」。手机问能不能用，就点「允许」。</li>
+<li>让手机屏幕朝天，放平，看两个数。轻轻拿起来。让上边低一点，再让下边低一点，看「前后」先变正、再变负。让左边低一点，再让右边低一点，看「左右」先变负、再变正。最后让右上角低一点，两个数都应变正。</li>
+<li>每个姿势先动一动，再扶稳两秒。动的时候应该还能看见数字，停稳后看状态。把手机转成横屏，再压低屏幕右边和上边。若没有数字，点「设置」→「传感器与相机诊断」，看哪个来源收到了数据。</li>
+<li>把白色打印拇指和灯放好。用支架固定手机，让十字对准甲面。点白色圆钮拍一张。记住手机和拇指的位置。</li>
+<li>点「系统拍摄」拍第二张。回到网页，照实点刚打开的是相机还是相册。如果只打开相册，这个浏览器的系统拍摄记为未调用成功。</li>
+<li>用手机自带的相机，以同一镜头、1×和同一位置拍第三张。回网页，点「导入原图」，选刚拍的那张。</li>
+<li>点「相册」，分别打开三张。点「原图 1:1」看甲根、左边和右边是否清楚。点「圈出甲面」，沿同一圈甲缘依次点一圈。写下是否模糊、有方块、出现白边，或拍进去的范围明显不同。点「保存观察」。</li>
+<li>点「保存照片和数据」。去手机的「下载」打开 ZIP，里面应有同编号的一张图和一个 JSON。在小米自带浏览器再做一遍，两个浏览器的本机相册各自保存。</li></ol>
+<p>有已知角度的斜板时，把手机平放在板上，依次朝四边各测三次。记下参照角、稳定显示值和两者相差多少。校准只在确认水平的平板上做，先避开凸出的镜头。</p>
+<h2>目前实际测到了什么</h2>
+<table><thead><tr><th>环境</th><th>水平仪</th><th>照片与参数</th></tr></thead><tbody>
+<tr><td>V0.1 · 用户的小米13</td><td>用户报告双轴变化没有正常显示。</td><td>能打开相机，实报预览 1080×1920，画面偏小。成片尺寸和可读镜头参数尚无原片证据。</td></tr>
+<tr><td>V0.2 · 自动计算</td><td>平放、前后左右、组合倾斜及四种屏幕旋转通过。模拟移动有估计值，超时或无数据读数留空。</td><td>本机 42 项自动检查通过，覆盖照片配对、完整性、EXIF、来源、坐标及时间。</td></tr>
+<tr><td>V0.2 · Windows Chrome 158 自动操作</td><td>注入事件验证了数值变化、切换来源和中断。横屏和竖屏均可按快门，无需滚动。</td><td>12 组浏览器流程通过。Chrome 自带虚拟相机实际经静态接口交回 3840×2160。另用合成文件检查三入口、拒绝授权、ZIP 下载和离线数据处理。</td></tr>
+<tr><td>V0.2 · 小米13 Chrome</td><td>待真机检查方向、响应、误差及事件是否中断。</td><td>待确定最高实拍尺寸、是否打开系统相机、镜头字段、白色甲缘细节及手机下载。</td></tr>
+<tr><td>V0.2 · 小米13自带浏览器</td><td>待真机检查授权与事件来源。</td><td>静态接口、系统入口、文件返回及下载行为均待真机验证。</td></tr>
+</tbody></table>
+<h2>三种方式怎么判</h2>
+<table><thead><tr><th>方式</th><th>已有证据</th><th>实拍时看这里</th></tr></thead><tbody>
+<tr><td>A 网页</td><td>实测程序能分别保存静态文件及整尺寸视频帧，记录请求、预览和最终尺寸。静态照片原字节保留。</td><td>相册里看「网页静态照片」或「网页视频帧」。镜头参数分别看 EXIF 和浏览器实读。</td></tr>
+<tr><td>B 系统拍摄</td><td>测试了文件交回、只打开相册、来源不确定三条流程。系统是否启动由使用者确认。</td><td>对比相同拇指的成片、焦距和甲缘。离开网页后的曝光姿态未知。</td></tr>
+<tr><td>C 导入原图</td><td>已核对导入 JPEG 与导出的照片逐字节相同。无法解析的文件仍能导出。</td><td>用自带相机刚拍的原图作为基准。在本页相册用相同范围圈甲面，放大看甲根与两边。</td></tr>
+</tbody></table>
+<p>相册会并列显示本浏览器最新的 A、本人确认的 B、主动导入的 C。请对同一拇指做完一组再比较。圈点估算的是甲面占了多少像素，能分辨多少甲缘细节还要看原图。没有本次三张真机原片，质量差距和小米13实拍上限都未知。</p>
+<details><summary>V0.1 审计和修复</summary><p>旧版只请求 1920×1080 预览。静态接口虽然读取了尺寸范围，拍照时没有传尺寸。移动或尚未稳定时直接清空读数，数据入口只有 DeviceMotion。固定比例的小预览和说明卡片挤占了取景空间。旧版 32 项检查复跑通过，其中就包含移动时隐藏读数的旧行为。</p><p>新版沿用重力角度换算、物理水平面的手动校准、原片与 JSON 同一笔本机存储、校验及 ZIP 导出。传感器优先使用可用的独立重力或含重力加速度，可转用绝对或相对融合姿态。只有相对参考时会提示在水平面核对。来源不一致时保留估计并标明状态。</p></details>
+<details><summary>成片、参数和坐标如何使用</summary><p>网页请求后摄和 4K 预览，并试用设备公开的更高范围。范围的两个最大值可能无法组合。静态接口优先尝试最高宽高，失败后逐级重试。浏览器报告 1×、连续对焦等设置时才写作实读。逻辑摄像头内部的光学切换可能对网页不可见。</p>
+<p>JPEG 会读取品牌、型号、镜头、实际与等效焦距、数字变焦、光圈、曝光时长、ISO、方向、像素尺寸及原拍摄时间。只有文件中实有的字段才有值。浏览器另记镜头名称、方向、分辨率范围、帧率、变焦范围和对焦距离。光学中心、视场角、畸变等未开放时留空。没有使用厂商标称值填空。</p>
+<p>静态优先时完整显示预览，比例不同的区域留黑边。静态照片与视频可能采用不同视场，预览到静态原片的映射未知。若浏览器没有静态接口，或自己选了「铺满屏幕 · 保存视频帧」，会记录屏幕可见的像素区域、网格与准心位置、双向变换，保存完整视频帧。照片始终保留原尺寸。</p>
+<p>网页快门记录请求、返回、前后传感器样本及页面时钟。系统入口仅记录离开和返回前后的可用上下文。曝光时刻及跨设备时钟误差未知。EXIF 的时间和曝光时长分别保存。角度显示到 0.1°，测量误差仍需参照物实测。</p></details>
+<details><summary>网页路线是否值得继续</summary><p>值得先作为标准化取景、原片导入和数据归档工具继续试用。只有在小米13多次实拍中，A 的甲根和两侧能与原生原片一样稳定辨认、取景姿态可靠并保留配准所需参数，才适合把网页直拍定为采集方式。若 A 只能截帧或甲缘明显较差，保留 B 或 C 的原片。精确内参、畸变和曝光姿态仍需独立标定或其他有测量依据的采集手段。</p></details>
+<p><small>资料来自 <a href="https://www.w3.org/TR/orientation-event/">W3C 姿态与运动事件</a>、<a href="https://www.w3.org/TR/accelerometer/">重力接口</a>、<a href="https://www.w3.org/TR/mediacapture-streams/">相机流</a>、<a href="https://www.w3.org/TR/image-capture/">静态拍照</a>、<a href="https://www.w3.org/TR/html-media-capture/">系统拍摄入口</a>及 <a href="https://www.cipa.jp/std/documents/e/DC-X008-Translation-2019-E.pdf">CIPA EXIF</a>。兼容性结论以本页列出的测试环境为准。</small></p>
+</main></body></html>

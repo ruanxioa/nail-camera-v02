@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="zh-CN"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111715">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; media-src 'self' blob:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>甲面拍摄 · V0.2</title><link rel="icon" href="data:,"><link rel="stylesheet" href="./style.css"></head>
+<body>
+<main id="cameraApp" aria-label="甲面拍摄">
+  <div id="stage"><video id="video" autoplay muted playsinline aria-label="后置相机预览"></video>
+    <div id="guides" hidden><div id="grid"><i></i><i></i><i></i><i></i></div><div class="cross"></div></div>
+  </div>
+  <header class="hud"><div class="angles"><span>左右 <b id="roll">—</b></span><span>前后 <b id="pitch">—</b></span></div>
+    <div id="resolution">预览待开启</div><div id="poseStatus">尚未开启水平仪</div></header>
+  <div id="startPane"><span class="viewfinder" aria-hidden="true"></span><h1>甲面拍摄</h1>
+    <button id="start" class="primary">开启相机</button><p id="startHint">弹出提示时，点「允许」</p></div>
+  <div id="level" aria-label="圆形双轴水平仪"><i></i><i></i><b id="bubble" hidden></b></div>
+  <div class="dock">
+    <div class="modes" aria-label="采集方式"><button id="webMode" class="selected">网页拍摄</button><button id="systemMode">系统拍摄</button><button id="importMode">导入原图</button></div>
+    <div class="controls"><button id="album" class="utility" aria-label="本机相册"><span class="albumIcon" id="thumb"></span>相册</button>
+      <button id="shutter" aria-label="拍照" disabled><span></span></button>
+      <button id="settings" class="utility" aria-label="设置与诊断"><span class="settingsIcon" aria-hidden="true">☷</span>设置</button></div>
+  </div>
+  <div id="toast" role="status" hidden></div>
+</main>
+<input id="systemInput" type="file" accept="image/*" capture="environment" hidden>
+<input id="fileInput" type="file" accept="image/*,.heic,.heif,.dng,.avif,.tif,.tiff" hidden>
+<dialog id="panel"><div class="sheet"><header class="panelHeader"><h2 id="panelTitle">设置与诊断</h2><button id="closePanel">关闭</button></header>
+  <section id="settingsPage">
+    <div class="option"><label for="gridToggle">九宫格</label><input type="checkbox" id="gridToggle" checked></div>
+    <div class="option"><label for="framing">取景方式</label><select id="framing"><option value="auto">优先静态原片</option><option value="frame">铺满屏幕 · 保存视频帧</option></select></div>
+    <div class="option"><label for="lens">后置镜头</label><select id="lens"><option value="">自动选择</option></select></div>
+    <div class="pair"><button id="enablePose">开启或重试水平仪</button><button id="fullscreen">全屏取景</button></div>
+    <details><summary>校准水平仪</summary><p>把手机屏幕朝上，放在确认水平的平板上。镜头凸起时，把机身垫平。等两秒，再点下方按钮。</p>
+      <div class="pair"><button id="calibrate">已放平，校准</button><button id="resetCal">清除校准</button></div><p id="calState"></p></details>
+    <details id="diag"><summary>传感器与相机诊断</summary><div class="option"><label for="poseSource">水平仪来源</label><select id="poseSource"><option value="auto">自动选择</option><option value="gravity">系统重力向量</option><option value="motion">含重力加速度</option><option value="absolute">地球参考融合姿态</option><option value="orientation">系统融合姿态</option></select></div><p id="diagSummary"></p><pre id="diagnostics"></pre></details>
+    <details><summary>手机怎么测</summary><ol>
+      <li>屏幕朝上放平，轻轻压低手机的上边、下边、左边、右边，再同时压低一个角。看两个数字和圆点怎么动。</li>
+      <li>把白色拇指放好，固定灯和手机位置。点白色圆钮拍一张，再点「系统拍摄」拍一张。</li>
+      <li>用手机自带相机在相同位置拍一张，回到这里点「导入原图」。</li>
+      <li>点「相册」看三张图。打开一张，点原图看甲根和两边，再点「保存照片和数据」。</li>
+    </ol><p>右边压低，左右为正。上边压低，前后为正。显示到 0.1°，实际误差需用已知角度实测。</p></details>
+    <p class="footnote">V0.2 · 照片保存在这个浏览器里。清理浏览器前，请先导出。原片可能自带位置，请留意分享范围。</p>
+    <p><a href="./check.html" target="_blank" rel="noopener">手机测试步骤与验收结果</a></p>
+  </section>
+  <section id="albumPage" hidden><div id="compare"></div><div id="shotList"></div></section>
+  <section id="detailPage" hidden><button id="backAlbum">‹ 全部照片</button><h3 id="detailName"></h3><div id="detailSummary"></div>
+    <div id="imageTools" hidden><div id="photoScroll"><div id="imageWrap"><img id="photoView" alt="本机照片"><canvas id="outline"></canvas></div></div>
+      <div class="pair"><button id="zoomView">原图 1:1</button><button id="mark">圈出甲面</button><button id="undoMark" hidden>撤回一点</button></div><p id="markInfo"></p>
+    </div><label for="notes">甲根、左缘、右缘、对焦及压缩观察</label><textarea id="notes" rows="2" placeholder="例如：甲根清楚，左缘模糊"></textarea>
+    <div class="pair"><button id="saveReview">保存观察</button><button id="exportShot" class="primary">保存照片和数据</button></div>
+    <details><summary>照片参数与来源</summary><div id="params"></div></details><details><summary>完整 JSON</summary><pre id="jsonPreview"></pre></details>
+  </section>
+  <section id="confirmPage" hidden><p>刚才打开的是哪一个？</p><div class="stack"><button id="wasCamera" class="primary">打开了相机，我刚拍了一张</button>
+    <button id="wasGallery">只打开了相册，我选的是已有照片</button><button id="wasUnknown">说不准</button></div></section>
+  <p id="panelMsg" role="status"></p>
+</div></dialog><script type="module" src="./app.js"></script></body></html>
