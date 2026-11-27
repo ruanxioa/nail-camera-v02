@@ -62,13 +62,14 @@ function startPane(hint) {
 }
 async function startCamera(lens='') {
   if(busy) return;
-  setBusy(true);lastError='';$('startHint').textContent='正在等相机，请留意权限提示';
+  setBusy(true);lastError='';clearTimeout(lastToast);$('toast').hidden=true;$('startHint').textContent='正在等相机，请留意权限提示';
   void pose.start();
   try {
     await camera.start(lens);$('startPane').hidden=true;updateLenses();layout();
     camera.track?.addEventListener('ended',()=>{if(!camera.track || camera.track.readyState==='ended'){
       camera.stop();startPane('相机已暂停，点上方按钮重新开启');setBusy(false);}});
     if (!camera.video.videoWidth) msg('相机已开启，等候第一帧');
+    else if(camera.rearEvidence?.includes('未报告')) msg('请看一眼画面是否来自后置镜头，可在设置里选择镜头');
   } catch(e) {
     lastError=e.name+' '+e.message;
     const hint=['NotAllowedError','SecurityError'].includes(e.name) ? '相机没有获准。点地址栏旁的网站设置，允许相机，或点下方「系统拍摄」。' : e.message;
@@ -179,7 +180,10 @@ for(const [id,kind] of [['systemInput','system'],['fileInput','import']]) {
     if(!file || !context || context.kind!==kind) {msg('未收到文件');return;}
     const at=clock(), ends=kind==='system' ? endpoint(at) : {returnPose:null,nearCompletion:[]};
     setBusy(true);returned={context,file,at,ends,post:kind==='system' ? after(at) : Promise.resolve([])};
-    if (kind==='system') open('confirmPage','确认拍摄来源');
+    if (kind==='system') {
+      $('pickerQuestion').textContent=context.captureHintSupported ? '刚才打开的是哪一个？' : '浏览器没有报告系统拍摄支持。刚才实际打开的是哪一个？';
+      open('confirmPage','确认拍摄来源');
+    }
     else void finishExternal('native-import');
   });
 }

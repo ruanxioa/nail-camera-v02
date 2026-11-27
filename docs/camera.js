@@ -88,7 +88,7 @@ export class WebCamera {
     if (!globalThis.isSecureContext) throw new Error('请用 HTTPS 在浏览器打开本页');
     if (!navigator.mediaDevices?.getUserMedia) throw new Error('这个浏览器没有开放网页相机，可用系统拍摄或导入');
     this.stop(); if (!isRetry) this.attempts=[];
-    this.photoCaps=null; this.photoCapsError=null;
+    this.photoCaps=null; this.photoCapsError=null;this.photoSettings=null;this.photoSettingsError=null;
     const supported=navigator.mediaDevices.getSupportedConstraints?.() || {};
     const target={width:{ideal:3840},height:{ideal:2160}};
     if (supported.resizeMode) target.resizeMode={ideal:'none'};
@@ -149,6 +149,13 @@ export class WebCamera {
             fillLightMode:pc.fillLightMode ?? null,redEyeReduction:pc.redEyeReduction ?? null};
         } catch(e){this.photoCapsError=errorText(e);}
       }
+      if(this.capture?.getPhotoSettings) {
+        try {
+          const p=await deadline(this.capture.getPhotoSettings(),1800,'读取静态照片设置超时');
+          this.photoSettings={imageWidth:p.imageWidth??null,imageHeight:p.imageHeight??null,
+            fillLightMode:p.fillLightMode??null,redEyeReduction:p.redEyeReduction??null};
+        } catch(e){this.photoSettingsError=errorText(e);}
+      }
       return this.describe();
     } catch(e){this.stop();throw e;}
   }
@@ -165,7 +172,8 @@ export class WebCamera {
       settings:trackValues(s,this.aliases),capabilities:trackValues(c,this.aliases),constraints:trackValues(get(t,'getConstraints'),this.aliases),
       requests:JSON.parse(JSON.stringify(this.attempts)),requestedPreview:{width:3840,height:2160,mode:'ideal'},
       actualVideoDimensions:this.video.videoWidth ? {width:this.video.videoWidth,height:this.video.videoHeight} : null,
-      photoCapabilities:this.photoCaps,photoCapabilitiesError:this.photoCapsError,hasTakePhoto:typeof this.capture?.takePhoto==='function',
+      photoCapabilities:this.photoCaps,photoCapabilitiesError:this.photoCapsError,initialPhotoSettings:this.photoSettings,
+      initialPhotoSettingsError:this.photoSettingsError,hasTakePhoto:typeof this.capture?.takePhoto==='function',
       zoomOneConfirmed:s.zoom===1, lensSelection:this.lensDescription, rearEvidence:this.rearEvidence,
       parameters:cameraParameters(s,c,t.label,this.publicDevices())};
   }
@@ -180,10 +188,11 @@ export class WebCamera {
       if (h>0) options.push({imageHeight:h});
       options.push({});
       for (const settings of options) {
-        const begin=clock(), geometry=getGeometry(), context=onAttempt(begin);
+        const geometry=getGeometry(), begin=clock();
         const record={settings,request:begin}; tries.push(record);
         try {
-          const blob=await deadline(this.capture.takePhoto(settings),15000,'静态拍照超时，请重新开启相机');
+          const pending=this.capture.takePhoto(settings), context=onAttempt(begin);
+          const blob=await deadline(pending,15000,'静态拍照超时，请重新开启相机');
           record.complete=clock(); if (!blob || !blob.size) throw new Error('相机返回空照片');
           record.ok=true;
           return {blob,method:'image-capture-still',begin,complete:record.complete,context,tries,geometry,
@@ -196,14 +205,14 @@ export class WebCamera {
     }
     const video=this.video;
     if (video.readyState<2 || !video.videoWidth || !video.videoHeight) throw new Error('没有可保存的视频画面，请重开相机');
-    const begin=clock(), geometry=getGeometry(), context=onAttempt(begin);
-    const canvas=document.createElement('canvas');
+    const geometry=getGeometry(), canvas=document.createElement('canvas');
     canvas.width=video.videoWidth;canvas.height=video.videoHeight;
-    canvas.getContext('2d',{alpha:false}).drawImage(video,0,0);
-    const copied=clock();
+    const surface=canvas.getContext('2d',{alpha:false}), videoElementTimeAtCopySec=video.currentTime;
+    const begin=clock();surface.drawImage(video,0,0);
+    const copied=clock(), context=onAttempt(begin);
     const blob=await new Promise((resolve,reject)=>canvas.toBlob(b=>b ? resolve(b) : reject(new Error('画面保存失败')),'image/png'));
     return {blob,method:'video-frame-png',begin,complete:clock(),context,tries,geometry,
-      frameInfo:{copyStart:begin,copyComplete:copied,width:canvas.width,height:canvas.height,videoTimeSec:video.currentTime},
+      frameInfo:{copyStart:begin,copyComplete:copied,width:canvas.width,height:canvas.height,videoElementTimeAtCopySec},
       reason:frameRequested ? '用户指定满屏视频取景；保存整个原尺寸视频帧及可见区域映射' : this.capture?.takePhoto ? '静态接口请求均失败；保存当时视频帧的原尺寸 PNG' : '浏览器未开放静态接口；保存当时视频帧的原尺寸 PNG'};
   }
 }
